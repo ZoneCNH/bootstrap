@@ -16,8 +16,8 @@ import (
 
 // Build 是唯一入口：config → observex → resilience → lifecycle 组装。
 //
-// 按 Spec.Stores 位掩码决定是否构造存储适配器（当前 v0.1.0 存储构造为 stub，
-// 待存储 adapter 的 New 签名固化后补全；adapter 传 None 不受影响）。
+// 按 Spec.Stores 位掩码决定是否构造存储适配器（v0.1.1 已实现 6 adapter 构造；
+// ossx 当前 0 源码跳过；adapter 传 Stores=None 不受影响）。
 //
 // Build 成功后，调用者应：
 //  1. 执行 Spec.Hooks（注册自定义 Component）

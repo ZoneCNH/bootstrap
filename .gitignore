@@ -1,0 +1,23 @@
+# Compiled binaries (root-level only, not pkg/bootstrap/ dir)
+/bootstrap
+
+# Test artifacts
+*.out
+coverage.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go workspace (local)
+go.work
+go.work.sum
+
+# Agent runtime (not part of release)
+.omx/
+.agent/

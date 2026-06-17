@@ -1,0 +1,15 @@
+github.com/ZoneCNH/configx v1.0.0 h1:U3QKjT9sgFvxTNR0422AlzUiPqYBXt2XEhuCAxGxMCg=
+github.com/ZoneCNH/configx v1.0.0/go.mod h1:O9Bbjq+YabVQm9JPhQJikn2vb5QoMeYAMiRVGUBsXmk=
+github.com/ZoneCNH/foundationx v0.1.0 h1:2Kl6WJ+WWktdhqZdWijWwXEMP1XGGFuOu0d7D9D0UrI=
+github.com/ZoneCNH/foundationx v0.1.0/go.mod h1:RpTHom/eqSyHHDRjnomhZMKG8yQddzEqYkB+17p8XeI=
+github.com/ZoneCNH/kernel v1.0.0 h1:HwH66/xtRQYWKcKsPJnUTf/tSwiCUfJdun/MQwJJcjU=
+github.com/ZoneCNH/kernel v1.0.0/go.mod h1:DUYYcDHTNqALIBVIgtuGUr1LUhaGXIdK8AYKLj+7yHc=
+github.com/ZoneCNH/observex v0.3.1 h1:diZeRSWiWL5pVhwvS7ra+RKYTHnuqeuzRjK3gzcw8ls=
+github.com/ZoneCNH/observex v0.3.1/go.mod h1:SsXfeTejFxrGmaY6Xy9ERHQvdQ7zEV+de98tGGfJsYk=
+github.com/ZoneCNH/resiliencx v0.4.9 h1:oB1OGIezPDUNpXQwMsbPAwC6HilwGbwYAENKOsiqYQY=
+github.com/ZoneCNH/resiliencx v0.4.9/go.mod h1:BqbmqnWjkPOQJ92wgwKjg1x7TqdobwHA9k5OkddMm7g=
+github.com/pelletier/go-toml/v2 v2.3.1 h1:MYEvvGnQjeNkRF1qUuGolNtNExTDwct51yp7olPtrEc=
+github.com/pelletier/go-toml/v2 v2.3.1/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

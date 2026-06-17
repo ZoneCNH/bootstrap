@@ -44,7 +44,7 @@ gate_no_transport() {
 # §20.4 依赖方向：只向下依赖 kernel/configx/observex/resiliencx/存储适配器
 gate_dependency_direction() {
   local hits
-  hits="$(grep -Rn 'ZoneCNH/' --include='*.go' pkg/ 2>/dev/null | grep -vE 'kernel|configx|observex|resiliencx|taosx|postgresx|redisx|kafkax|natsx|ossx|clickhousex' || true)"
+  hits="$(grep -Rn 'ZoneCNH/' --include='*.go' pkg/ 2>/dev/null | grep -vE 'kernel|configx|observex|resiliencx|foundationx|taosx|postgresx|redisx|kafkax|natsx|ossx|clickhousex' || true)"
   [ -z "$hits" ]
 }
 

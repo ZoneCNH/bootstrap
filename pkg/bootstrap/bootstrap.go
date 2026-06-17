@@ -59,12 +59,15 @@ func Build(ctx context.Context, spec Spec) (*App, error) {
 	}
 	app.Resilience = resClient
 
-	// ---- 4. 存储适配器（按 StoreSet；v0.1.0 stub）----
+	// ---- 4. 存储适配器（按 StoreSet）----
 	// SPEC OQ-003：存储 adapter 未实现 Component，构造后用 closerComponent 注册。
-	// v0.1.0 暂不构造真实存储（adapter Stores=None 不受影响）；
-	// 聚合层 Stores!=None 时返回明确错误，待存储 adapter New 签名固化后补全。
-	if spec.Stores != None {
-		return nil, fmt.Errorf("%s: stores construction pending (SPEC v0.1.0 stub); use Stores=None for adapter", op)
+	// ossx 当前 0 源码，跳过（stores.OSS 保持 nil）。
+	stores, err := buildStores(ctx, spec)
+	if err != nil {
+		_ = resClient.Close(ctx)
+		_ = obsClient.Close(ctx)
+		_ = cfgClient.Close(ctx)
+		return nil, fmt.Errorf("%s: stores: %w", op, err)
 	}
 
 	// ---- 5. lifecycx.Manager（注册全部 Client 为 closerComponent）----
@@ -72,6 +75,10 @@ func Build(ctx context.Context, spec Spec) (*App, error) {
 		newCloserComponent(spec.Module+":resilience", resClient.Close),
 		newCloserComponent(spec.Module+":observe", obsClient.Close),
 		newCloserComponent(spec.Module+":config", cfgClient.Close),
+	}
+	// 注册 store components（逆序：CH→...→TD，与注册顺序相反确保 TD 先关）
+	for _, sc := range stores.components(spec.Module) {
+		components = append(components, &sc)
 	}
 	app.Lifecycle = lifecycx.NewManager(components...)
 

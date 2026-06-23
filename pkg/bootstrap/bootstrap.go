@@ -14,14 +14,18 @@ import (
 	"github.com/ZoneCNH/resiliencx/pkg/resiliencx"
 )
 
-// Build 是唯一入口：config → observex → resilience → lifecycle 组装。
+// Build 是唯一入口：config → observex → resilience → stores → hooks → lifecycle 组装。
 //
-// 按 Spec.Stores 位掩码决定是否构造存储适配器（v0.1.1 已实现 6 adapter 构造；
-// ossx 当前 0 源码跳过；adapter 传 Stores=None 不受影响）。
+// 按 Spec.Stores 位掩码决定是否构造存储适配器（v0.2.0 已实现全部 7 adapter 构造：
+// taosx/postgresx/redisx/kafkax/natsx/ossx(aliyun)/clickhousex；adapter 传 Stores=None
+// 不受影响，聚合层传 All 或位组合）。
+//
+// Spec.Hooks 在 Manager 构造前调用，用于注册自定义生命周期组件（领域 server/admin
+// 等）。这是各数据域子模块挂载领域共享层(domainx/contracts)的注入点。
 //
 // Build 成功后，调用者应：
-//  1. 执行 Spec.Hooks（注册自定义 Component）
-//  2. 调用 app.Run(ctx) 阻塞
+//  1. 通过 app.Stores 获取已构造的存储句柄（聚合层）
+//  2. 调用 app.Run(ctx) 阻塞（含信号捕获 + 逆序 Stop）
 func Build(ctx context.Context, spec Spec) (*App, error) {
 	const op = "bootstrap.Build"
 
@@ -61,7 +65,7 @@ func Build(ctx context.Context, spec Spec) (*App, error) {
 
 	// ---- 4. 存储适配器（按 StoreSet）----
 	// SPEC OQ-003：存储 adapter 未实现 Component，构造后用 closerComponent 注册。
-	// ossx 当前 0 源码，跳过（stores.OSS 保持 nil）。
+	// v0.2.0：7 个 adapter 全部接入（含 ossx via aliyun）。
 	stores, err := buildStores(ctx, spec)
 	if err != nil {
 		_ = resClient.Close(ctx)
@@ -69,8 +73,24 @@ func Build(ctx context.Context, spec Spec) (*App, error) {
 		_ = cfgClient.Close(ctx)
 		return nil, fmt.Errorf("%s: stores: %w", op, err)
 	}
+	app.Stores = stores
 
-	// ---- 5. lifecycx.Manager（注册全部 Client 为 closerComponent）----
+	// ---- 5. Hooks（在 NewManager 之前调用，让 Hook 能贡献生命周期组件）----
+	// Hook 通过 app.Register(comp...) 追加自定义 Component（领域 server/admin 等），
+	// 这些组件随后与基础组件一起注册进 Manager。
+	// 这是各数据域子模块挂载领域共享层(domainx/contracts)的注入点——
+	// bootstrap 本身保持 L1 纯净，不 import 领域层（BR-001）。
+	for _, hook := range spec.Hooks {
+		if err := hook(app); err != nil {
+			// 回滚已建的 Client（逆序：resilience→observe→config，store components）
+			_ = resClient.Close(ctx)
+			_ = obsClient.Close(ctx)
+			_ = cfgClient.Close(ctx)
+			return nil, fmt.Errorf("%s: hook: %w", op, err)
+		}
+	}
+
+	// ---- 6. lifecycx.Manager（基础组件 + store 组件 + hook 注册的组件）----
 	components := []lifecycx.Component{
 		newCloserComponent(spec.Module+":resilience", resClient.Close),
 		newCloserComponent(spec.Module+":observe", obsClient.Close),
@@ -80,15 +100,9 @@ func Build(ctx context.Context, spec Spec) (*App, error) {
 	for _, sc := range stores.components(spec.Module) {
 		components = append(components, &sc)
 	}
+	// 追加 Hook 注册的组件（领域 server/admin 等自定义组件）
+	components = append(components, app.extraComponents...)
 	app.Lifecycle = lifecycx.NewManager(components...)
-
-	// ---- 6. Hooks ----
-	for _, hook := range spec.Hooks {
-		if err := hook(app); err != nil {
-			_ = app.Lifecycle.Stop(ctx)
-			return nil, fmt.Errorf("%s: hook: %w", op, err)
-		}
-	}
 
 	return app, nil
 }

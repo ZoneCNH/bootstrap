@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bootstrap boundary-gates — 5 道 CI 边界门禁。
+# bootstrap boundary-gates — 6 道 CI 边界门禁。
 #
 # 对应 module/bootstrap/SPEC.md §20。
 # 用法：./scripts/boundary-gates.sh   # 任意一道失败 exit 1，全过 exit 0
@@ -42,22 +42,33 @@ gate_no_transport() {
 }
 
 # §20.4 依赖方向：只向下依赖 kernel/configx/observex/resiliencx/存储适配器
+# v0.2.0：foundationx 从白名单移除（源码已零 import，仅 observex indirect 残留）
 gate_dependency_direction() {
   local hits
-  hits="$(grep -Rn 'ZoneCNH/' --include='*.go' pkg/ 2>/dev/null | grep -vE 'kernel|configx|observex|resiliencx|foundationx|taosx|postgresx|redisx|kafkax|natsx|ossx|clickhousex' || true)"
+  hits="$(grep -Rn 'ZoneCNH/' --include='*.go' pkg/ 2>/dev/null | grep -vE 'kernel|configx|observex|resiliencx|taosx|postgresx|redisx|kafkax|natsx|ossx|clickhousex' || true)"
   [ -z "$hits" ]
 }
 
-# §20.5 编译通过
+# §20.5 foundationx 零命中：v0.2.0 清零后，bootstrap 源码不得 import foundationx
+# （foundationx 仍可能作为 observex 等 primitive 的 indirect 依赖出现在 go.mod，
+# 但 bootstrap 代码路径不引用它）。检查 import 语句，忽略注释。
+gate_no_foundationx_import() {
+  local hits
+  hits="$(grep -Rn '"github.com/ZoneCNH/foundationx' --include='*.go' pkg/ 2>/dev/null || true)"
+  [ -z "$hits" ]
+}
+
+# §20.6 编译通过
 gate_build() {
   go build ./...
 }
 
-run_gate "20.1" "no-business-semantics" gate_no_business_semantics
-run_gate "20.2" "no-data-domain"        gate_no_data_domain
-run_gate "20.3" "no-transport"          gate_no_transport
-run_gate "20.4" "dependency-direction"  gate_dependency_direction
-run_gate "20.5" "build"                 gate_build
+run_gate "20.1" "no-business-semantics"   gate_no_business_semantics
+run_gate "20.2" "no-data-domain"          gate_no_data_domain
+run_gate "20.3" "no-transport"            gate_no_transport
+run_gate "20.4" "dependency-direction"    gate_dependency_direction
+run_gate "20.5" "no-foundationx-import"   gate_no_foundationx_import
+run_gate "20.6" "build"                   gate_build
 
 echo ""
 echo "Results: $pass passed, $fail failed"

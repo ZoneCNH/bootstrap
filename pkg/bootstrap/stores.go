@@ -144,7 +144,7 @@ func (s *Stores) components(module string) []closerComponent {
 		}
 	}
 	if s.CH != nil {
-		comps = append(comps, *newCloserComponent(module+":ch", s.CH.Close))
+		comps = append(comps, *newCloserComponent(module+":ch", s.CH.CloseContext))
 	}
 	return comps
 }
